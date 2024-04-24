@@ -1,0 +1,52 @@
+import json
+# import the Python math library
+import logging
+import boto3
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+def lambda_handler(event, context):
+    logger.info('Event:',event)
+
+    #Connecting to client and creating a ref for table
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('ipl_teams')
+
+    intent=(event['currentIntent']['name'])
+    print(intent)
+
+    if intent=='GetAllItems':
+        get
+    
+    # Code to add items to table ipl_teams
+     table.put_item(
+     Item={
+         'ID': 3,
+         'team_Name': 'SRH',
+         'team_Owner': 'Kavya Menor',
+     }
+    )
+    
+    #To get all items from ipl_teams table
+    response_scan = table.scan()
+    data = response_scan['Items']
+
+    while 'LastEvaluatedKey' in response_scan:
+        response = table.scan(ExclusiveStartKey=response_scan['LastEvaluatedKey'])
+        data.extend(response_scan['Items'])
+    print(data) #stores all the data as array of objects
+    
+    #Code to get items from table ipl_teams by sepecifying the ID
+    response = table.get_item(
+    Key={
+        'ID': 3,
+    }
+    )
+    item = response['Item']
+    print(item)
+    
+
+
+
+ 

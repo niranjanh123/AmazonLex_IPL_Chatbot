@@ -1,0 +1,130 @@
+import json
+# import the Python math library
+import logging
+import boto3
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+#Connecting to client and creating a ref for table
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('ipl')
+
+intent=""
+# ID=0
+
+def lambda_handler(event, context):
+    logger.info('Event:',event)
+    slots = event['sessionState']['intent']['slots']
+    intent = event['sessionState']['intent']['name']
+    print(event['invocationSource'])
+
+
+    if intent=='GetAllItems':
+        print("Reached GetAllItems")
+        result = get_all_items_from_table()
+        print("result from GetAllItems method",result)
+        return responseMsg(event,result)
+    
+    elif intent=='GetItemByID':
+        print('REached GetItemByID')
+        slots = event['sessionState']['intent']['slots']
+        print('Slots: ',slots) 
+        item_ID=event['sessionState']['intent']['slots']['id']['value']['originalValue']
+        print(item_ID)
+        result = getItemByID(item_ID)
+        print("result from getItemByID method",result)
+        return responseMsg(event,result)
+        
+    elif intent=='DeleteItemByID':
+        print('Reached DeleteItemByID')
+        slots = event['sessionState']['intent']['slots']
+        print('Slots: ',slots) 
+        ID=event['sessionState']['intent']['slots']['ID']['value']['originalValue']
+        print(ID)
+        result = DeleteItemByID(ID)
+        print("result from getItemByID method",result)
+        return responseMsg(event,result)
+        
+    #To get all items from ipl_teams table
+     # Example for getting all items from the specified table
+def get_all_items_from_table():
+    response_scan = table.scan()
+    data = response_scan['Items']
+
+    while 'LastEvaluatedKey' in response_scan:
+        response = table.scan(ExclusiveStartKey=response_scan['LastEvaluatedKey'])
+        data.extend(response_scan['Items'])
+        print(data) #stores all the data as array of objects
+        
+    msg = ''
+    for d in data:
+        msg = msg + d['team_Name']+"- "+d['team_Owner']
+        msg = msg + '\n'
+
+    print(msg)
+
+    #msg='Hello there'
+    return msg
+    
+    
+#get team details based on provided ID by the user
+def getItemByID(id):
+    ID = str(id)
+     #Code to get items from table ipl_teams by sepecifying the ID
+    response = table.get_item(
+    Key={
+        'ID': ID,
+    }
+    )
+    item = response['Item']
+    if len(item) == 0:
+        return "The entered ID is not valid, please try again by again typing ID followed by the value!"
+    print('Item founded for Id {id} \n')
+    print(item)
+    return item['team_Name'] + " " + item['team_Owner']
+    
+    
+#delete a team based on the ID provided
+def DeleteItemByID(id):
+    ID = str(id)
+     #Code to delete a team from table ipl_teams by sepecifying the ID
+    response = table.delete_item(
+    Key={
+        'ID': ID,
+    }
+    )
+    item = response['Item']
+    if len(item) == 0:
+        return "The entered ID is not valid, please try again by again typing ID followed by the value!"
+    print('Item founded for Id {id} \n')
+    print(item)
+    return item['team_Name'] + " " + " is deleted."
+        
+        
+def responseMsg(event,msg):
+   # Result to lex bot
+    print("Output:",msg)
+    response = {
+                "sessionState": {
+                    "dialogAction": {
+                        "type": "Close",
+                        "fulfillmentState": "Fulfilled",
+                    },
+                    "intent": {
+                        "name": event['sessionState']['intent']['name'],
+                        "state":"Fulfilled" 
+                        }
+                },
+                "messages": [
+                    {
+                        "contentType": "PlainText",
+                        "content": msg
+                    }
+                ]
+            } 
+    return response
+    
+
+
+
+ 

@@ -1,0 +1,7 @@
+https://docs.aws.amazon.com/lex/latest/dg/lambda-input-response-format.html
+
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/get_item.html
+
+https://docs.aws.amazon.com/code-library/latest/ug/python_3_dynamodb_code_examples.html
+
+https://github.com/aws-samples/aws-lex-web-ui
